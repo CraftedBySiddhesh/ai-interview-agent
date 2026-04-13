@@ -1,0 +1,26 @@
+# UI
+streamlit>=1.35.0
+
+# LLM
+langchain-core>=0.2.0
+langchain-mistralai>=0.1.0
+mistralai>=1.0.0
+
+# Vectorless RAG — BM25 keyword retrieval (replaces FAISS + sentence-transformers)
+rank-bm25>=0.2.2
+
+# Web search
+tavily-python>=0.3.0
+
+# File parsing
+pypdf>=4.0.0
+python-docx>=1.1.0
+
+# Structured output
+pydantic>=2.0.0
+
+# Environment
+python-dotenv>=1.0.0
+
+# Utilities
+langchain>=0.2.0
