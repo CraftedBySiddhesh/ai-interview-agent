@@ -18,6 +18,24 @@ Zero Streamlit imports. All functions are pure Python, importable into FastAPI (
 import logging
 from typing import Optional
 
+from config import (
+    ADAPTIVE_AVG_THRESHOLD,
+    ADAPTIVE_LOOKBACK,
+    TOKEN_GUARD_KEEP_MESSAGES,
+    TOKEN_GUARD_WORDS,
+    get_model,
+    get_tavily,
+    TAVILY_MAX_RESULTS,
+    TAVILY_SNIPPET_CHARS,
+)
+from prompts import (
+    build_code_quality_chain,
+    get_analyze_role_chain,
+    get_detect_cv_gaps_chain,
+    get_quality_scores_chain,
+    get_scorecard_chain,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,8 +58,6 @@ def analyze_role(jd_text: str) -> dict:
                         domain, interview_focus_areas.
         Returns empty dict on failure (non-blocking — FR-023).
     """
-    from prompts import get_analyze_role_chain
-
     try:
         chain = get_analyze_role_chain()
         result = chain.invoke({"jd_text": jd_text})
@@ -75,8 +91,6 @@ def detect_cv_gaps(jd_text: str, cv_text: str, core_skills: list[str]) -> dict:
         dict with keys: missing_skills, weak_areas, strengths_match, gap_summary.
         Returns empty dict on failure (non-blocking — FR-023).
     """
-    from prompts import get_detect_cv_gaps_chain
-
     try:
         chain = get_detect_cv_gaps_chain()
         result = chain.invoke({
@@ -113,8 +127,6 @@ def search_trends(role_title: str, domain: str) -> str:
         Concatenated trend snippet string (up to 5 results × 300 chars).
         Returns empty string on failure (non-blocking — FR-023).
     """
-    from config import get_tavily, TAVILY_MAX_RESULTS, TAVILY_SNIPPET_CHARS
-
     if not role_title and not domain:
         logger.warning("search_trends called with empty role_title and domain — skipping.")
         return ""
@@ -162,8 +174,6 @@ def get_quality_scores(question: str, answer: str) -> tuple[int, int]:
         (clarity, depth) — both integers in range 1-5.
         Returns (3, 3) as neutral fallback on failure.
     """
-    from prompts import get_quality_scores_chain
-
     try:
         chain = get_quality_scores_chain()
         result = chain.invoke({"question": question, "answer": answer})
@@ -201,8 +211,6 @@ def get_code_quality_scores(
         dict with keys: correctness, efficiency, readability (all int 1-5).
         Returns {correctness:3, efficiency:3, readability:3} on failure.
     """
-    from prompts import build_code_quality_chain
-
     default = {"correctness": 3, "efficiency": 3, "readability": 3}
 
     try:
@@ -245,8 +253,6 @@ def generate_scorecard(
     Returns:
         Validated Scorecard object, or None on failure (FR-081).
     """
-    from prompts import get_scorecard_chain
-
     try:
         # Build a concise interview summary from the QA log
         summary_lines = [f"Interview for: {candidate_name}", f"Total questions answered: {len(qa_log)}"]
@@ -351,8 +357,6 @@ def safe_model_invoke(messages: list) -> Optional[str]:
     Returns:
         Model response content string, or None on failure.
     """
-    from config import get_model, TOKEN_GUARD_WORDS, TOKEN_GUARD_KEEP_MESSAGES
-
     try:
         # FR-075 — Token guard
         messages = trim_messages_if_needed(messages, TOKEN_GUARD_WORDS, TOKEN_GUARD_KEEP_MESSAGES)
@@ -391,8 +395,6 @@ def check_adaptive_difficulty(
     Returns:
         True if adaptive escalation should be triggered, False otherwise.
     """
-    from config import ADAPTIVE_AVG_THRESHOLD, ADAPTIVE_LOOKBACK
-
     if already_escalated:
         return False
     if current_difficulty == "Hard":

@@ -31,21 +31,6 @@ CODING_KEYWORDS: set[str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Prompt injection patterns to redact (FR-013)
-# ---------------------------------------------------------------------------
-_INJECTION_PATTERNS: list[re.Pattern] = [
-    re.compile(r"ignore (all )?previous instructions?", re.IGNORECASE),
-    re.compile(r"disregard (all )?previous", re.IGNORECASE),
-    re.compile(r"you are now", re.IGNORECASE),
-    re.compile(r"act as", re.IGNORECASE),
-    re.compile(r"<\|.*?\|>"),         # token boundary injection
-    re.compile(r"\[INST\]|\[/INST\]"),
-    re.compile(r"###\s*System"),
-    re.compile(r"###\s*Instruction"),
-]
-
-
-# ---------------------------------------------------------------------------
 # FR-011, FR-012 — Text extraction
 # ---------------------------------------------------------------------------
 def extract_text(file_bytes: bytes, filename: str) -> str:
@@ -131,11 +116,22 @@ def sanitise_text(text: str) -> str:
     if not text:
         return ""
 
+    _injection_patterns: list[re.Pattern] = [
+        re.compile(r"ignore (all )?previous instructions?", re.IGNORECASE),
+        re.compile(r"disregard (all )?previous", re.IGNORECASE),
+        re.compile(r"you are now", re.IGNORECASE),
+        re.compile(r"act as", re.IGNORECASE),
+        re.compile(r"<\|.*?\|>"),         # token boundary injection
+        re.compile(r"\[INST\]|\[/INST\]"),
+        re.compile(r"###\s*System"),
+        re.compile(r"###\s*Instruction"),
+    ]
+
     # 1 — Remove null bytes
     text = text.replace("\x00", "")
 
     # 2 — Redact injection patterns
-    for pattern in _INJECTION_PATTERNS:
+    for pattern in _injection_patterns:
         text = pattern.sub("[REDACTED]", text)
 
     # 3 — Collapse excessive blank lines

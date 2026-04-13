@@ -19,7 +19,7 @@ from typing import Optional
 
 from langchain_core.output_parsers import JsonOutputParser, PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from config import get_model, TOTAL_QUESTIONS, MAX_HINTS
 
@@ -58,19 +58,6 @@ class Scorecard(BaseModel):
         description="2-3 sentence summary of the candidate's interview performance.",
     )
 
-    @field_validator("strengths")
-    @classmethod
-    def exactly_three_strengths(cls, v: list[str]) -> list[str]:
-        if len(v) != 3:
-            raise ValueError(f"strengths must have exactly 3 items, got {len(v)}.")
-        return v
-
-    @field_validator("gaps")
-    @classmethod
-    def two_to_three_gaps(cls, v: list[str]) -> list[str]:
-        if not (2 <= len(v) <= 3):
-            raise ValueError(f"gaps must have 2-3 items, got {len(v)}.")
-        return v
 
 
 # ---------------------------------------------------------------------------
@@ -368,7 +355,7 @@ def build_code_quality_chain(language: str = "Python"):
     parser = JsonOutputParser()
 
     system_msg = SystemMessagePromptTemplate.from_template(
-        f"You are an expert {language} code reviewer assessing interview submissions. "
+        "You are an expert code reviewer assessing interview submissions. "
         "Always respond with valid JSON only. No explanation, no markdown fences."
     )
     human_msg = HumanMessagePromptTemplate.from_template(

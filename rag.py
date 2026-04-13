@@ -16,13 +16,15 @@ import logging
 import re
 from typing import Optional
 
+from config import CHUNK_OVERLAP, CHUNK_SIZE
+
 logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
 # FR-024, FR-025 — Document chunking
 # ---------------------------------------------------------------------------
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
     """
     Split text into overlapping character-level chunks.
 
@@ -222,8 +224,8 @@ def retrieve_context_bm25(
 def build_all_indexes(
     jd_text: str,
     cv_text: str,
-    chunk_size: int = 500,
-    overlap: int = 50,
+    chunk_size: int = CHUNK_SIZE,
+    overlap: int = CHUNK_OVERLAP,
 ) -> tuple[Optional[object], list[str], Optional[object], list[str]]:
     """
     Chunk JD and CV texts and build their respective BM25 indexes.
